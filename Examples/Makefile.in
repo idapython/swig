@@ -334,6 +334,10 @@ else
   SWIGOPTPY3 = -py3
 endif
 
+ifneq (,$(PY3_STABLE_ABI))
+  SWIGOPTPY3 += -py3-stable-abi
+endif
+
 PYCODESTYLE       = @PYCODESTYLE@
 PYCODESTYLE_FLAGS = --ignore=E252,E30,E402,E501,E731,W291,W391
 

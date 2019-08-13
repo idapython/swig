@@ -12,6 +12,10 @@
  *      }
  */
 
+%#ifdef Py_LIMITED_API
+#error PyBuffer wrapper is not supported with -py3-stable-abi
+%#endif
+
 %define %pybuffer_mutable_binary(TYPEMAP, SIZE)
 %typemap(in) (TYPEMAP, SIZE) {
   int res; Py_ssize_t size = 0; void *buf = 0;
