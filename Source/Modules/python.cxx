@@ -820,7 +820,9 @@ public:
     Printf(f_wrappers, "%s\n", methods);
     Append(methods_proxydocs, "\t { NULL, NULL, 0, NULL }\n");
     Append(methods_proxydocs, "};\n");
-    Printf(f_wrappers, "%s\n", methods_proxydocs);
+    Printf(f_wrappers, "#ifndef Py_LIMITED_API\n");
+    Printf(f_wrappers, "%s", methods_proxydocs);
+    Printf(f_wrappers, "#endif\n");
 
     if (builtin) {
       Dump(f_builtins, f_wrappers);
