@@ -251,18 +251,32 @@ namespace Swig {
 # endif
 #endif
 
+/* simple thread abstraction for pthreads on win32 */
 #ifdef __THREAD__
-# include "pythread.h"
+# define __PTHREAD__
+# if defined(_WIN32) || defined(__WIN32__)
+#  include <windows.h>
+#  define pthread_mutex_lock EnterCriticalSection
+#  define pthread_mutex_unlock LeaveCriticalSection
+#  define pthread_mutex_t CRITICAL_SECTION
+#  define SWIG_MUTEX_INIT(var) var
+# else
+#  include <pthread.h>
+#  define SWIG_MUTEX_INIT(var) var = PTHREAD_MUTEX_INITIALIZER 
+# endif
+#endif
+
+#ifdef  __PTHREAD__
   class Guard {
-    PyThread_type_lock &mutex_;
+    pthread_mutex_t *_mutex;
 
   public:
-    Guard(PyThread_type_lock & mutex) : mutex_(mutex) {
-      PyThread_acquire_lock(mutex_, WAIT_LOCK);
+    Guard(pthread_mutex_t &mutex) : _mutex(&mutex) {
+      pthread_mutex_lock(_mutex);
     }
 
     ~Guard() {
-      PyThread_release_lock(mutex_);
+      pthread_mutex_unlock(_mutex);
     }
   };
 # define SWIG_GUARD(mutex) Guard _guard(mutex)
@@ -329,8 +343,8 @@ namespace Swig {
   private:
     typedef std::map<void *, GCItem_var> swig_ownership_map;
     mutable swig_ownership_map swig_owner;
-#ifdef __THREAD__
-    static PyThread_type_lock swig_mutex_own;
+#ifdef __PTHREAD__
+    static pthread_mutex_t swig_mutex_own;
 #endif
 
   public:
@@ -381,8 +395,8 @@ namespace Swig {
     }
   };
 
-#ifdef __THREAD__
-  PyThread_type_lock Director::swig_mutex_own = PyThread_allocate_lock();
+#ifdef __PTHREAD__
+  pthread_mutex_t SWIG_MUTEX_INIT(Director::swig_mutex_own);
 #endif
 }
 
